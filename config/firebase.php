@@ -77,13 +77,28 @@ if (!function_exists('firebase_service_account')) {
         'private_key' => $decoded['private_key'] ?? '',
       ];
     } else {
-      $clientEmail = trim((string) ($env['FIREBASE_CLIENT_EMAIL'] ?? ''));
-      $privateKey = (string) ($env['FIREBASE_PRIVATE_KEY'] ?? '');
-      $privateKey = str_replace(["\\n", "\r\n"], "\n", $privateKey);
-      $service = [
-        'client_email' => $clientEmail,
-        'private_key' => $privateKey,
-      ];
+      // Priority 1: full JSON blob in env var (useful for Railway/Heroku secret files)
+      $jsonBlob = trim((string) (getenv('FIREBASE_CREDENTIALS_JSON') ?: ($env['FIREBASE_CREDENTIALS_JSON'] ?? '')));
+      if ($jsonBlob !== '') {
+        $decoded = json_decode($jsonBlob, true);
+        if (is_array($decoded)) {
+          $service = [
+            'client_email' => $decoded['client_email'] ?? '',
+            'private_key'  => $decoded['private_key'] ?? '',
+          ];
+        }
+      }
+
+      // Priority 2: individual email + key env vars (getenv takes precedence over .env.php)
+      if ($service === null) {
+        $clientEmail = trim((string) (getenv('FIREBASE_CLIENT_EMAIL') ?: ($env['FIREBASE_CLIENT_EMAIL'] ?? '')));
+        $privateKey  = (string) (getenv('FIREBASE_PRIVATE_KEY')  ?: ($env['FIREBASE_PRIVATE_KEY']  ?? ''));
+        $privateKey  = str_replace(["\\n", "\r\n"], "\n", $privateKey);
+        $service = [
+          'client_email' => $clientEmail,
+          'private_key'  => $privateKey,
+        ];
+      }
     }
 
     if (empty($service['client_email']) || empty($service['private_key'])) {
