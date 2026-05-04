@@ -11,19 +11,27 @@ class Controller {
     }
 
     protected function redirect($url) {
-        // Ensure redirect uses correct base path if needed
-        $basePath = $this->getBasePath();
-        $target = $basePath . '/' . ltrim($url, '/');
-        header("Location: " . $target);
+        $base = $this->getBaseUrl();
+        $target = $base . '/' . ltrim($url, '/');
+        header('Location: ' . $target);
         exit;
     }
 
-    protected function getBasePath() {
-        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-        $scriptDir = str_replace('\\', '/', dirname($scriptName));
-        if ($scriptDir === '/' || $scriptDir === '\\' || $scriptDir === '.') {
-            return '';
+    protected function getBaseUrl(): string {
+        // Detect scheme — Railway / Vercel always terminate TLS at the proxy,
+        // forwarding the original scheme via X-Forwarded-Proto.
+        $proto = 'http';
+        if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+            $proto = 'https';
+        } elseif (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') {
+            $proto = 'https';
         }
-        return rtrim($scriptDir, '/');
+        $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+        return $proto . '://' . $host;
+    }
+
+    /** @deprecated Use getBaseUrl() instead */
+    protected function getBasePath(): string {
+        return '';
     }
 }

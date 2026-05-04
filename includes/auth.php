@@ -133,6 +133,18 @@ function auth_redirect_to_login(array $params = []): void {
     $query = http_build_query($params);
     $target .= '?' . $query;
   }
-  header('Location: ' . $target);
+
+  // Build absolute URL so it works behind Railway / Vercel reverse proxies
+  // where a bare relative Location header can cause redirect loops.
+  $proto = 'http';
+  if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+    $proto = 'https';
+  } elseif (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') {
+    $proto = 'https';
+  }
+  $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+  $absoluteTarget = $proto . '://' . $host . '/' . $target;
+
+  header('Location: ' . $absoluteTarget);
   exit;
 }

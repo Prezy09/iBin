@@ -18,15 +18,10 @@ if (!function_exists('render_header')) {
     $brand  = $opts['brand']  ?? APP_BRAND_FULL;
     $theme  = $opts['theme']  ?? 'light';
     $extra_head = $opts['extra_head'] ?? '';
-    $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-    $scriptDir = str_replace('\\', '/', dirname($scriptName));
-    if ($scriptDir === '/' || $scriptDir === '\\' || $scriptDir === '.') {
-      $scriptDir = '';
-    }
-    $basePath = $opts['base_path'] ?? $scriptDir;
-    $basePath = rtrim(str_replace('\\', '/', $basePath), '/');
-    $baseHref = $basePath === '' ? '/' : $basePath . '/';
-    $assetPrefix = $basePath === '' ? '/assets' : $basePath . '/assets';
+    // Always at domain root — SCRIPT_NAME is unreliable on Railway/Vercel.
+    $basePath    = '';
+    $baseHref    = '/';
+    $assetPrefix = '/assets';
     $assetVersion = $opts['asset_version'] ?? (is_file(__DIR__ . '/../assets/js/app.js') ? filemtime(__DIR__ . '/../assets/js/app.js') : time());
     $GLOBALS['_layout_env'] = [
       'base_href' => $baseHref,
@@ -443,7 +438,7 @@ if (!function_exists('render_footer')) {
 
       async function refreshNotifications(){
         try {
-          const response = await fetch('api/notifications.php');
+          const response = await fetch('/api/notifications.php');
           if (!response.ok) return;
           const data = await response.json();
           applyNotificationData(data);

@@ -16,15 +16,11 @@ $brand = $brand ?? APP_BRAND_FULL;
 $theme = $theme ?? 'light';
 $extra_head = $extra_head ?? '';
 
-$scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-$scriptDir = str_replace('\\', '/', dirname($scriptName));
-if ($scriptDir === '/' || $scriptDir === '\\' || $scriptDir === '.') {
-  $scriptDir = '';
-}
-$basePath = $scriptDir;
-$basePath = rtrim(str_replace('\\', '/', $basePath), '/');
-$baseHref = $basePath === '' ? '/' : $basePath . '/';
-$assetPrefix = $basePath === '' ? '/assets' : $basePath . '/assets';
+// Always deploy at domain root — both locally (via .htaccess) and on Railway.
+// SCRIPT_NAME is unreliable on reverse-proxy hosts (returns /api/index.php).
+$basePath    = '';
+$baseHref    = '/';
+$assetPrefix = '/assets';
 $assetVersion = file_exists(__DIR__ . '/../../../assets/js/app.js') ? filemtime(__DIR__ . '/../../../assets/js/app.js') : time();
 
 $title_attr = htmlspecialchars($title, ENT_QUOTES);
@@ -427,7 +423,7 @@ $isMasterAdmin = auth_is_master_admin();
 
       async function refreshNotifications(){
         try {
-          const response = await fetch('api/notifications.php');
+          const response = await fetch('/api/notifications.php');
           if (!response.ok) return;
           const data = await response.json();
           applyNotificationData(data);

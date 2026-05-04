@@ -11,8 +11,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link href="assets/css/theme.css" rel="stylesheet">
-  <link href="assets/css/auth.css" rel="stylesheet">
+  <link href="/assets/css/theme.css" rel="stylesheet">
+  <link href="/assets/css/auth.css" rel="stylesheet">
 </head>
 
 <body class="auth-body">
@@ -25,7 +25,7 @@
         <span class="hero-badge text-uppercase small mb-1">City Ops Release 2.4</span>
         <div class="hero-heading d-flex flex-column flex-lg-row align-items-lg-end gap-3 mb-2">
             <div class="d-flex align-items-center gap-3">
-              <img src="assets/img/LOGO 1 SVG.svg" alt="Smart waste logo" class="hero-logo">
+              <img src="/assets/img/LOGO 1 SVG.svg" alt="Smart waste logo" class="hero-logo">
               <div>
                 <p class="hero-eyebrow mb-1 text-white-50">Himamaylan City LGU</p>
                 <h1 class="hero-title mb-0">iBin Smart Waste Management System</h1>
