@@ -6,18 +6,50 @@ declare(strict_types=1);
 
 if (!function_exists('firebase_env')) {
   /**
-   * Load .env.php values once for Firebase usage.
+   * Load .env.php values and merge with real system environment variables.
+   * System env vars (injected by Railway / Heroku / Docker) always take priority
+   * over values in .env.php, so the same codebase works in every environment.
    */
   function firebase_env(): array {
     static $env = null;
     if ($env !== null) {
       return $env;
     }
+
+    // Load file-based config first.
     $envPath = __DIR__ . '/../.env.php';
-    $env = file_exists($envPath) ? include $envPath : [];
-    if (!is_array($env)) {
-      $env = [];
+    $fileEnv = file_exists($envPath) ? include $envPath : [];
+    if (!is_array($fileEnv)) {
+      $fileEnv = [];
     }
+
+    // Overlay with real OS environment variables — these win on Railway / Heroku.
+    $sysKeys = [
+      'FIREBASE_DATABASE_URL',
+      'FIREBASE_CREDENTIALS',
+      'FIREBASE_CREDENTIALS_JSON',
+      'FIREBASE_CLIENT_EMAIL',
+      'FIREBASE_PRIVATE_KEY',
+      'FIREBASE_BINS_LIMIT',
+      'MASTER_ADMIN_EMAIL',
+    ];
+    $sysEnv = [];
+    foreach ($sysKeys as $key) {
+      $val = getenv($key);
+      if ($val !== false && $val !== '') {
+        $sysEnv[$key] = $val;
+      }
+    }
+
+    $env = array_merge($fileEnv, $sysEnv);
+
+    // If FIREBASE_CREDENTIALS points to a file that no longer exists (e.g. a
+    // local Windows path deployed to Linux), clear it so the code falls through
+    // to FIREBASE_CLIENT_EMAIL / FIREBASE_PRIVATE_KEY / FIREBASE_CREDENTIALS_JSON.
+    if (!empty($env['FIREBASE_CREDENTIALS']) && !file_exists((string) $env['FIREBASE_CREDENTIALS'])) {
+      $env['FIREBASE_CREDENTIALS'] = '';
+    }
+
     return $env;
   }
 }
