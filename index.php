@@ -75,7 +75,16 @@ $router->post('manage_admins', 'AdminController@index');
 $router->post('manage_admins.php', 'AdminController@index');
 
 // Dispatch
-$url = $_GET['url'] ?? '';
+// Supports both:
+//   - Apache .htaccess rewrite  → $_GET['url'] is set
+//   - Railway / PHP built-in server → parse REQUEST_URI directly
+if (isset($_GET['url']) && $_GET['url'] !== '') {
+    $url = $_GET['url'];
+} else {
+    $rawUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    $url = trim($rawUri ?? '', '/');
+}
+
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 $router->dispatch($url, $requestMethod);
