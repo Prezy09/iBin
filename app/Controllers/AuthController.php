@@ -32,8 +32,15 @@ class AuthController extends Controller {
             $this->redirect('login?error=' . urlencode('Email and password are required.'));
         }
 
-        // Extremely simplified login for migration - normally this is in a Model
-        $user = firebase_users_find_by_email($email);
+        // Look up user via Firebase — catch config/network errors so they show
+        // a friendly message instead of a fatal 500.
+        try {
+            $user = firebase_users_find_by_email($email);
+        } catch (Throwable $e) {
+            error_log('[auth] Firebase error during login: ' . $e->getMessage());
+            $this->redirect('login?error=' . urlencode('Service temporarily unavailable. Please try again later.'));
+            return;
+        }
         
         if (!$user || empty($user['password_hash'])) {
             $this->redirect('login?error=' . urlencode('Invalid credentials.'));
